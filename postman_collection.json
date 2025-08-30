@@ -1,0 +1,410 @@
+{
+  "info": {
+    "name": "SME Invoice Tool API Tests",
+    "description": "Complete test collection for the SME Invoice Tool API with Africa's Talking integration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "phoneNumber",
+      "value": "+255123456789",
+      "type": "string"
+    },
+    {
+      "key": "testInvoiceId",
+      "value": "INV-0001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Basic health check to verify the server is running"
+      },
+      "response": []
+    },
+    {
+      "name": "Get API Info",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": ["{{baseUrl}}"],
+          "path": [""]
+        },
+        "description": "Get API information and available endpoints"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Config",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/config",
+          "host": ["{{baseUrl}}"],
+          "path": ["config"]
+        },
+        "description": "Check Africa's Talking configuration and environment settings"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Invoice",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerPhone\": \"{{phoneNumber}}\",\n  \"amount\": 50000,\n  \"description\": \"Test invoice for Postman testing\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/invoices",
+          "host": ["{{baseUrl}}"],
+          "path": ["invoices"]
+        },
+        "description": "Create a new invoice with customer phone, amount, and description"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Invoice",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/invoices/{{testInvoiceId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["invoices", "{{testInvoiceId}}"]
+        },
+        "description": "Retrieve a specific invoice by ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Send Invoice via SMS",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phoneNumber\": \"{{phoneNumber}}\",\n  \"amount\": 50000,\n  \"invoiceId\": \"{{testInvoiceId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/send-invoice",
+          "host": ["{{baseUrl}}"],
+          "path": ["send-invoice"]
+        },
+        "description": "Send an invoice via SMS using Africa's Talking"
+      },
+      "response": []
+    },
+    {
+      "name": "Send Invoice by ID",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/invoices/{{testInvoiceId}}/send",
+          "host": ["{{baseUrl}}"],
+          "path": ["invoices", "{{testInvoiceId}}", "send"]
+        },
+        "description": "Send an existing invoice via SMS using its ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Test SMS",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"to\": \"{{phoneNumber}}\",\n  \"message\": \"Hello from SME Invoice Tool! This is a test message.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/test-sms",
+          "host": ["{{baseUrl}}"],
+          "path": ["test-sms"]
+        },
+        "description": "Send a custom SMS message for testing"
+      },
+      "response": []
+    },
+    {
+      "name": "Mobile Money Checkout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phoneNumber\": \"{{phoneNumber}}\",\n  \"amount\": 1000,\n  \"currency\": \"TZS\",\n  \"invoiceId\": \"{{testInvoiceId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/payments/checkout",
+          "host": ["{{baseUrl}}"],
+          "path": ["payments", "checkout"]
+        },
+        "description": "Initiate mobile money payment (STK push) - requires Africa's Talking Payments setup"
+      },
+      "response": []
+    },
+    {
+      "name": "Simulate Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"invoiceId\": \"{{testInvoiceId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/simulate/pay",
+          "host": ["{{baseUrl}}"],
+          "path": ["simulate", "pay"]
+        },
+        "description": "Simulate marking an invoice as paid (for testing without real payments)"
+      },
+      "response": []
+    },
+    {
+      "name": "Payment Callback",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"invoiceId\": \"{{testInvoiceId}}\",\n  \"status\": \"PAID\",\n  \"txnId\": \"TX-123456789\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/payments/callback",
+          "host": ["{{baseUrl}}"],
+          "path": ["payments", "callback"]
+        },
+        "description": "Simulate payment provider callback to update invoice status"
+      },
+      "response": []
+    },
+    {
+      "name": "USSD Handler",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "sessionId",
+              "value": "123456789",
+              "type": "text"
+            },
+            {
+              "key": "serviceCode",
+              "value": "*123#",
+              "type": "text"
+            },
+            {
+              "key": "phoneNumber",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/ussd",
+          "host": ["{{baseUrl}}"],
+          "path": ["ussd"]
+        },
+        "description": "Test USSD menu - initial menu"
+      },
+      "response": []
+    },
+    {
+      "name": "USSD - Send Invoice",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "sessionId",
+              "value": "123456789",
+              "type": "text"
+            },
+            {
+              "key": "serviceCode",
+              "value": "*123#",
+              "type": "text"
+            },
+            {
+              "key": "phoneNumber",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "1",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/ussd",
+          "host": ["{{baseUrl}}"],
+          "path": ["ussd"]
+        },
+        "description": "USSD menu - option 1 (Send Invoice)"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound Webhook",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "12345",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "Hello",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456789",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test inbound SMS webhook from Africa's Talking"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Status Webhook",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "status",
+              "value": "Success",
+              "type": "text"
+            },
+            {
+              "key": "messageId",
+              "value": "123456789",
+              "type": "text"
+            },
+            {
+              "key": "phoneNumber",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "status"]
+        },
+        "description": "Test SMS delivery status webhook from Africa's Talking"
+      },
+      "response": []
+    }
+  ]
+}
