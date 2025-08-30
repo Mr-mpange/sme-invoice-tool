@@ -1,0 +1,669 @@
+{
+  "info": {
+    "name": "SMS Shortcode 18338 Tests",
+    "description": "Test collection for SMS shortcode chat functionality with session management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "phoneNumber",
+      "value": "+255123456789",
+      "type": "string"
+    },
+    {
+      "key": "shortcode",
+      "value": "18338",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Basic health check to verify server is running"
+      },
+      "response": []
+    },
+    {
+      "name": "Get API Info",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": ["{{baseUrl}}"],
+          "path": [""]
+        },
+        "description": "Get API information and shortcode commands"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound - Start Menu",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "{{shortcode}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "menu",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456789",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test SMS shortcode menu - user sends 'menu' to start"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound - Option 1 (Send Invoice)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "{{shortcode}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456790",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test SMS shortcode - user selects option 1 (Send Invoice)"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound - Enter Invoice ID",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "{{shortcode}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "INV-001",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456791",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test SMS shortcode - user enters invoice ID"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound - Enter Amount",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "{{shortcode}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "50000",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456792",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test SMS shortcode - user enters amount to complete invoice creation"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound - Option 2 (Check Invoice)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "{{shortcode}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "2",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456793",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test SMS shortcode - user selects option 2 (Check Invoice)"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound - Check Invoice ID",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "{{shortcode}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "INV-001",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456794",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test SMS shortcode - user enters invoice ID to check status"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound - Option 3 (Pay Now)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "{{shortcode}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "3",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456795",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test SMS shortcode - user selects option 3 (Pay Now)"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound - Enter Payment Amount",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "{{shortcode}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "1000",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456796",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test SMS shortcode - user enters payment amount"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound - Option 4 (Help)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "{{shortcode}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "4",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456797",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test SMS shortcode - user selects option 4 (Help)"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound - Invalid Option",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "{{shortcode}}",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "9",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456798",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test SMS shortcode - user enters invalid option"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Inbound - Wrong Shortcode",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "12345",
+              "type": "text"
+            },
+            {
+              "key": "text",
+              "value": "menu",
+              "type": "text"
+            },
+            {
+              "key": "date",
+              "value": "2024-01-01 12:00:00",
+              "type": "text"
+            },
+            {
+              "key": "id",
+              "value": "123456799",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/inbound",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "inbound"]
+        },
+        "description": "Test SMS shortcode - user sends to wrong shortcode (should be ignored)"
+      },
+      "response": []
+    },
+    {
+      "name": "Test Shortcode Endpoint",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phoneNumber\": \"{{phoneNumber}}\",\n  \"command\": \"menu\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/test-shortcode",
+          "host": ["{{baseUrl}}"],
+          "path": ["test-shortcode"]
+        },
+        "description": "Test the shortcode simulation endpoint"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Invoice Created via SMS",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/invoices/INV-001",
+          "host": ["{{baseUrl}}"],
+          "path": ["invoices", "INV-001"]
+        },
+        "description": "Verify that invoice was created during SMS flow"
+      },
+      "response": []
+    },
+    {
+      "name": "SMS Status Webhook",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "status",
+              "value": "Success",
+              "type": "text"
+            },
+            {
+              "key": "messageId",
+              "value": "123456789",
+              "type": "text"
+            },
+            {
+              "key": "phoneNumber",
+              "value": "{{phoneNumber}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sms/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["sms", "status"]
+        },
+        "description": "Test SMS delivery status webhook"
+      },
+      "response": []
+    }
+  ]
+}

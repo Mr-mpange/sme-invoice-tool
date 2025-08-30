@@ -1,0 +1,17 @@
+# Africa's Talking Configuration
+# Get these from your Africa's Talking dashboard: https://africastalking.com/
+
+# Required for SMS and Payments
+AT_API_KEY=your_africas_talking_api_key_here
+AT_USERNAME=your_africas_talking_username_here
+
+# Optional - for production
+AT_ENV=Sandbox  # or "Live" for production
+AT_SENDER_ID=your_approved_sender_id_or_shortcode  # Only needed for live environment
+
+# Payments Configuration
+AT_PRODUCT_NAME=your_product_name_here
+AT_MMO_CHANNEL=Mpesa  # or AirtelMoney, TigoPesa, etc.
+
+# Server Configuration
+PORT=5000
