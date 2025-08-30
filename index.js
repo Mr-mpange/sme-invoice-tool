@@ -207,6 +207,17 @@ app.get("/config", (req, res) => {
 app.get("/", (req, res) => {
   res.json({
     message: "SME Invoice Tool API",
+    ussd: {
+      dialCode: "*384*34059#",
+      serviceCode: "384",
+      shortcode: "34059",
+      instructions: "Dial *384*34059# from any phone to access the menu"
+    },
+    webhooks: {
+      smsInbound: `${req.protocol}://${req.get('host')}/sms/inbound`,
+      smsStatus: `${req.protocol}://${req.get('host')}/sms/status`,
+      ussd: `${req.protocol}://${req.get('host')}/ussd`
+    },
     endpoints: [
       { method: "GET", path: "/" },
       { method: "GET", path: "/health" },
@@ -237,11 +248,190 @@ app.post("/test-sms", async (req, res) => {
 });
 
 // 📥 Africa's Talking inbound SMS webhook (configure in AT dashboard)
-app.post("/sms/inbound", (req, res) => {
+app.post("/sms/inbound", async (req, res) => {
   // AT sends application/x-www-form-urlencoded
   const { from, to, text, date, id, linkId } = req.body;
-  console.log("Inbound SMS:", { from, to, text, date, id, linkId });
-  // Respond 200 OK with no body
+  console.log("📱 Inbound SMS:", { from, to, text, date, id, linkId });
+  
+  // Auto-reply to sender based on message content
+  try {
+    let replyMessage = "";
+    const userText = (text || "").toLowerCase().trim();
+    
+    // SMS Menu System - Users can text commands to 34059
+    if (userText === "menu" || userText === "help" || userText === "start") {
+      replyMessage = `📱 SME Invoice Tool - SMS Menu
+
+Reply with:
+• 1 - Create Invoice
+• 2 - Check Invoice  
+• 3 - Make Payment
+• 4 - Get Help
+
+Or dial *384*34059# for USSD menu
+
+Example: Reply "1 INV001 5000" to create invoice INV001 for TZS 5000`;
+
+    } else if (userText.startsWith("1")) {
+      // Create Invoice via SMS: "1 INV001 5000 Description"
+      const parts = text.split(" ");
+      if (parts.length >= 3) {
+        const invoiceId = parts[1];
+        const amount = parts[2];
+        const description = parts.slice(3).join(" ") || "Created via SMS";
+        
+        // Create invoice in memory
+        const invoice = {
+          id: invoiceId,
+          customerPhone: from,
+          amount: amount,
+          description: description,
+          status: "PENDING",
+          createdAt: new Date().toISOString()
+        };
+        invoices.set(invoiceId, invoice);
+        
+        replyMessage = `✅ Invoice Created!
+
+ID: ${invoiceId}
+Amount: TZS ${amount}
+Description: ${description}
+Status: PENDING
+
+To pay, reply "3 ${amount}" or dial *384*34059#`;
+        
+        console.log("📄 Invoice created via SMS:", invoice);
+      } else {
+        replyMessage = `❌ Invalid format. Use: "1 INV001 5000 Description"
+
+Example: "1 INV001 5000 Office supplies"`;
+      }
+
+    } else if (userText.startsWith("2")) {
+      // Check Invoice: "2 INV001"
+      const parts = text.split(" ");
+      if (parts.length >= 2) {
+        const invoiceId = parts[1];
+        const invoice = invoices.get(invoiceId);
+        
+        if (invoice) {
+          replyMessage = `📄 Invoice Details:
+
+ID: ${invoice.id}
+Amount: TZS ${invoice.amount}
+Description: ${invoice.description}
+Status: ${invoice.status}
+Created: ${new Date(invoice.createdAt).toLocaleDateString()}
+
+To pay, reply "3 ${invoice.amount}" or dial *384*34059#`;
+        } else {
+          replyMessage = `❌ Invoice ${invoiceId} not found.
+
+Create one with: "1 INV001 5000 Description"`;
+        }
+      } else {
+        replyMessage = `❌ Invalid format. Use: "2 INV001"`;
+      }
+
+    } else if (userText.startsWith("3")) {
+      // Make Payment: "3 5000"
+      const parts = text.split(" ");
+      if (parts.length >= 2) {
+        const amount = parts[1];
+        const numAmount = Number(amount);
+        
+        if (!Number.isFinite(numAmount) || numAmount <= 0) {
+          replyMessage = `❌ Invalid amount. Use: "3 5000"`;
+        } else {
+          // Initiate mobile checkout
+          try {
+            const useSdk = payments && typeof payments.mobileCheckout === "function";
+            const doCheckout = (payload) => useSdk ? payments.mobileCheckout(payload) : mobileCheckoutViaHttp(payload);
+            
+            doCheckout({
+              productName: AT_PRODUCT_NAME,
+              providerChannel: AT_SENDER_ID || undefined,
+              phoneNumber: from,
+              currencyCode: "TZS",
+              amount: numAmount,
+              metadata: { via: "sms" }
+            }).then(() => {
+              console.log("✅ Payment initiated via SMS for:", from, "Amount:", numAmount);
+            }).catch((e) => {
+              console.error("❌ SMS payment failed:", e.message);
+            });
+            
+            replyMessage = `💳 Payment Initiated!
+
+Amount: TZS ${numAmount}
+Phone: ${from}
+
+Check your phone for M-Pesa prompt.
+Enter PIN to confirm payment.
+
+Status updates will be sent via SMS.`;
+          } catch (error) {
+            replyMessage = `❌ Payment failed. Please try again or dial *384*34059#`;
+            console.error("❌ SMS payment error:", error.message);
+          }
+        }
+      } else {
+        replyMessage = `❌ Invalid format. Use: "3 5000"`;
+      }
+
+    } else if (userText === "4" || userText === "help") {
+      replyMessage = `📞 SME Invoice Tool - Help
+
+SMS Commands:
+• "menu" - Show this menu
+• "1 INV001 5000 Description" - Create invoice
+• "2 INV001" - Check invoice status
+• "3 5000" - Make payment
+
+USSD Menu: Dial *384*34059#
+
+Need support? Contact our team.`;
+
+    } else if (userText.includes("hello") || userText.includes("hi")) {
+      replyMessage = `👋 Hello! Welcome to SME Invoice Tool.
+
+Reply "menu" to see available options, or dial *384*34059# for USSD menu.`;
+
+    } else if (userText.includes("invoice")) {
+      replyMessage = `📄 To create an invoice, reply: "1 INV001 5000 Description"
+
+Or dial *384*34059# and select option 1.`;
+
+    } else if (userText.includes("payment") || userText.includes("pay")) {
+      replyMessage = `💳 To make a payment, reply: "3 5000"
+
+Or dial *384*34059# and select option 3.`;
+
+    } else {
+      replyMessage = `📱 Thanks for your message!
+
+Reply "menu" to see available options, or dial *384*34059# for USSD menu.
+
+Quick commands:
+• "1 INV001 5000" - Create invoice
+• "2 INV001" - Check invoice
+• "3 5000" - Make payment`;
+    }
+    
+    // Send auto-reply to the sender
+    if (replyMessage && from) {
+      await sms.send({
+        to: [from],
+        message: replyMessage,
+        from: resolveFromAddress()
+      });
+      console.log("✅ Auto-reply sent to:", from, "Message length:", replyMessage.length);
+    }
+  } catch (error) {
+    console.error("❌ Failed to send auto-reply:", error.message);
+  }
+  
+  // Respond 200 OK with no body (required by AT)
   res.sendStatus(200);
 });
 
@@ -254,95 +444,114 @@ app.all("/sms/status", (req, res) => {
 
 // ☎️ USSD handler (configure in AT dashboard)
 app.post("/ussd", async (req, res) => {
+  console.log("🔔 USSD Webhook Received:", {
+    method: req.method,
+    headers: req.headers,
+    body: req.body,
+    query: req.query
+  });
+
   const { sessionId, serviceCode, phoneNumber, text } = req.body;
-  console.log("USSD Hit:", { sessionId, serviceCode, phoneNumber, text });
+  console.log("📞 USSD Data:", { sessionId, serviceCode, phoneNumber, text });
 
   // Basic menu: 1) Send invoice 2) Check help
   let response = "";
   const userInput = (text || "").split("*");
 
-  if (text === undefined || text === null || text === "") {
-    response = "CON Welcome to SME Invoice Tool\n1. Send Invoice\n2. Check Invoice\n3. Pay Now\n4. Help";
-  } else if (userInput[0] === "1") {
-    if (userInput.length === 1) {
-      response = "CON Enter Invoice ID";
-    } else if (userInput.length === 2) {
-      response = "CON Enter Amount (TZS)";
-    } else if (userInput.length === 3) {
-      const invoiceId = userInput[1];
-      const amount = userInput[2];
-      // Optionally create invoice in memory
-      const invoice = {
-        id: invoiceId,
-        customerPhone: phoneNumber,
-        amount,
-        description: "Created via USSD",
-        status: "PENDING",
-        createdAt: new Date().toISOString()
-      };
-      invoices.set(invoiceId, invoice);
+  try {
+    if (text === undefined || text === null || text === "") {
+      response = "CON Welcome to SME Invoice Tool\n1. Send Invoice\n2. Check Invoice\n3. Pay Now\n4. Help";
+    } else if (userInput[0] === "1") {
+      if (userInput.length === 1) {
+        response = "CON Enter Invoice ID";
+      } else if (userInput.length === 2) {
+        response = "CON Enter Amount (TZS)";
+      } else if (userInput.length === 3) {
+        const invoiceId = userInput[1];
+        const amount = userInput[2];
+        // Optionally create invoice in memory
+        const invoice = {
+          id: invoiceId,
+          customerPhone: phoneNumber,
+          amount,
+          description: "Created via USSD",
+          status: "PENDING",
+          createdAt: new Date().toISOString()
+        };
+        invoices.set(invoiceId, invoice);
 
-      // Fire-and-forget SMS (sandbox requires blank from)
-      const smsMessage = `Invoice ${invoiceId}\nAmount: TZS ${amount}\nPay via M-Pesa Ref: ${invoiceId}`;
-      try {
-        // Fire-and-forget to avoid USSD timeout in simulator/providers
-        sms
-          .send({ to: [phoneNumber], message: smsMessage, from: resolveFromAddress() })
-          .then(() => {})
-          .catch((e) => console.error("Failed to send USSD SMS:", e.message));
-      } catch (e) {
-        console.error("Failed to queue USSD SMS:", e.message);
-      }
+        // Fire-and-forget SMS (sandbox requires blank from)
+        const smsMessage = `Invoice ${invoiceId}\nAmount: TZS ${amount}\nPay via M-Pesa Ref: ${invoiceId}`;
+        try {
+          // Fire-and-forget to avoid USSD timeout in simulator/providers
+          sms
+            .send({ to: [phoneNumber], message: smsMessage, from: resolveFromAddress() })
+            .then(() => {})
+            .catch((e) => console.error("Failed to send USSD SMS:", e.message));
+        } catch (e) {
+          console.error("Failed to queue USSD SMS:", e.message);
+        }
 
-      response = `END Invoice ${invoiceId} of TZS ${amount} will be sent via SMS.`;
-    }
-  } else if (userInput[0] === "2") {
-    if (userInput.length === 1) {
-      response = "CON Enter Invoice ID to check";
-    } else if (userInput.length === 2) {
-      const invoiceId = userInput[1];
-      const inv = invoices.get(invoiceId);
-      if (!inv) {
-        response = "END Invoice not found.";
-      } else {
-        const status = inv.status;
-        response = `END Invoice ${inv.id} status: ${status}`;
+        response = `END Invoice ${invoiceId} of TZS ${amount} will be sent via SMS.`;
       }
-    }
-  } else if (userInput[0] === "3") {
-    // Pay Now via Mobile Money prompt
-    if (userInput.length === 1) {
-      response = "CON Enter Amount (TZS)";
-    } else if (userInput.length === 2) {
-      const amount = userInput[1];
-      const msisdn = phoneNumber;
-      // Kick off mobile checkout asynchronously
-      try {
-        const useSdk = payments && typeof payments.mobileCheckout === "function";
-        const doCheckout = (payload) => useSdk ? payments.mobileCheckout(payload) : mobileCheckoutViaHttp(payload);
-        doCheckout({
-            productName: AT_PRODUCT_NAME,
-            providerChannel: AT_SENDER_ID || undefined,
-            phoneNumber: msisdn,
-            currencyCode: "TZS",
-            amount: Number(amount),
-            metadata: { via: "ussd" }
-          })
-          .then(() => {})
-          .catch((e) => console.error("USSD checkout error:", e.message));
-      } catch (e) {
-        console.error("Failed to queue checkout:", e.message);
+    } else if (userInput[0] === "2") {
+      if (userInput.length === 1) {
+        response = "CON Enter Invoice ID to check";
+      } else if (userInput.length === 2) {
+        const invoiceId = userInput[1];
+        const inv = invoices.get(invoiceId);
+        if (!inv) {
+          response = "END Invoice not found.";
+        } else {
+          const status = inv.status;
+          response = `END Invoice ${inv.id} status: ${status}`;
+        }
       }
-      response = `END Payment prompt will appear on ${msisdn}. Enter PIN to confirm.`;
+    } else if (userInput[0] === "3") {
+      // Pay Now via Mobile Money prompt
+      if (userInput.length === 1) {
+        response = "CON Enter Amount (TZS)";
+      } else if (userInput.length === 2) {
+        const amount = userInput[1];
+        const msisdn = phoneNumber;
+        // Kick off mobile checkout asynchronously
+        try {
+          const useSdk = payments && typeof payments.mobileCheckout === "function";
+          const doCheckout = (payload) => useSdk ? payments.mobileCheckout(payload) : mobileCheckoutViaHttp(payload);
+          doCheckout({
+              productName: AT_PRODUCT_NAME,
+              providerChannel: AT_SENDER_ID || undefined,
+              phoneNumber: msisdn,
+              currencyCode: "TZS",
+              amount: Number(amount),
+              metadata: { via: "ussd" }
+            })
+            .then(() => {})
+            .catch((e) => console.error("USSD checkout error:", e.message));
+        } catch (e) {
+          console.error("Failed to queue checkout:", e.message);
+        }
+        response = `END Payment prompt will appear on ${msisdn}. Enter PIN to confirm.`;
+      }
+    } else if (userInput[0] === "4") {
+      response = "END For help, contact support.";
+    } else {
+      response = "END Invalid option.";
     }
-  } else if (userInput[0] === "4") {
-    response = "END For help, contact support.";
-  } else {
-    response = "END Invalid option.";
+
+    console.log("📱 USSD Response:", response);
+    
+    // Set proper headers for USSD
+    res.set({
+      "Content-Type": "text/plain",
+      "Cache-Control": "no-cache"
+    });
+    res.send(response);
+  } catch (error) {
+    console.error("❌ USSD Error:", error);
+    res.set("Content-Type", "text/plain");
+    res.send("END An error occurred. Please try again.");
   }
-
-  res.set("Content-Type", "text/plain");
-  res.send(response);
 });
 
 // 🚫 404 handler to help debug wrong method/path
